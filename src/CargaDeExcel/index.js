@@ -18,6 +18,8 @@ function CargaDeExcel() {
   const [modalProcesando, setModalProcesando] = useState(false);
   const [modalBitacora, setModalBitacora] = useState(false);
   const [sendPropOdT, setSendPropOdT] = useState({});
+  const [archivoDeExcel, setArchivoDeExcel] = useState(null);
+  const [odt, setOdt] = useState({});
 
   const toggleProcesando = () => {
     setModalProcesando(!modalProcesando);
@@ -67,26 +69,95 @@ function CargaDeExcel() {
     toggleMovimientosCargados();
   }
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    toggleProcesando();
+    const formData = new FormData();
+    formData.append('archivoDeExcel', e.target.archivoDeExcel.files[0]);
+    try {
+      const response = await fetch(`${hostapi}/api/CargaExcel`, { // Replace with your actual API endpoint
+        method: 'post',
+        body: formData,
+      });
+
+      if (response.ok) {
+        setArchivoDeExcel(null); // Clear selected file after upload
+        setModalProcesando(false);
+        getOdts(); // Refresh the list of odts after upload
+      } else {
+        setModalProcesando(false);
+        alert('File upload failed.');
+      }
+    } catch (error) {
+      setModalProcesando(false);
+      console.error('Error uploading file:', error);
+      alert('An error occurred during upload.');
+    }
+  }
+
+  const dlgEliminar = (odt) => {
+    setOdt(odt);
+    if (window.confirm(`¿Desea eliminar la ODT ${odt.idOdT} - ${odt.descripcion}?`)) {
+      toggleProcesando();
+      axios.delete(`${hostapi}/api/OdT1/${odt.idOdT}`)
+        .then(res => {
+          //alert(`ODT ${odt.idOdT} eliminada correctamente.`);
+          getOdts();
+        })
+        .catch(err => {
+          setModalProcesando(false);
+          alert(`Error al eliminar la ODT:\n${err}`);
+        });
+    }
+  }
+
+  const imprimirEtiqueta = (odt) => {
+    toggleProcesando()
+    var request = new Request(
+      `${hostapi}/api/DocumentoPDF/EtiquetasDeLaOdt`,
+      {
+        method: "post",
+        body: JSON.stringify(odt.idOdT),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        mode: "cors",
+        cache: "default",
+      }
+    );
+    fetch(request)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const file = window.URL.createObjectURL(blob);
+        setModalProcesando(false)
+        window.open(file, '_blank');
+      })
+      .catch((err) => {
+        alert(`Error:\n${err}`);
+      })
+  }
+
   return (
     <Container>
-      <Form>
+      <Form onSubmit={(e) => handleSubmit(e)}>
         <Row>
           <Col xs="5"></Col>
           <Col xs="5">
-
-            <Input
+            <input
               type="file"
+              name='archivoDeExcel'
+              accept=".xlsx, .xls"
+              required
             />
           </Col>
           <Col>
             <Button
-              color="primary"
               type="submit"
+              color="primary"
             >
-              <span style={{marginRight: "1em"}} className="fa-solid fa-upload"></span>
+              <span className="fa-solid fa-upload"></span>
               Cargar
             </Button>
-
           </Col>
         </Row>
       </Form>
@@ -115,7 +186,7 @@ function CargaDeExcel() {
                     <td>{odt.surtido}</td>
                     <td>{odt.timestamp}</td>
                     <td>
-                      <Button color="primary" type="button" /* onClick={() => imprimirEtiqueta(etiqueta)} */>
+                      <Button color="primary" type="button" onClick={() => imprimirEtiqueta(odt)}>
                         <span className="fa-solid fa-print"></span>
                       </Button>
                       <Button color="success" type="button" onClick={() => verMovimientosCargados(odt)}>
@@ -124,7 +195,7 @@ function CargaDeExcel() {
                       <Button color="secondary" type="button" onClick={() => verBitacoraDeCarga(odt.idOdT)}>
                         <span className="fa-solid fa-book"></span>
                       </Button>
-                      <Button color="danger" type="button" /* onClick={() => dlgEliminar(etiqueta)} */>
+                      <Button color="danger" type="button" onClick={() => dlgEliminar(odt)}>
                         <span className="fa-solid fa-xmark"></span>
                       </Button>
                     </td>

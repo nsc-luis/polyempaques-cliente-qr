@@ -182,7 +182,7 @@ function QRRapido() {
       .then((blob) => {
         const file = window.URL.createObjectURL(blob);
         setModalProcesando(false)
-        window.open(file);
+        window.open(file, '_blank');
       })
       .catch((err) => {
         alert(`Error:\n${err}`);

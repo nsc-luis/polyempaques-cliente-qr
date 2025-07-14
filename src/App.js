@@ -10,8 +10,8 @@ import CargaDeExcel from './CargaDeExcel';
 
 function App() {
 
-  const [actTabQR, setActTabQR] = useState('active');
-  const [actTabCargaExcel, setActTabCargaExcel] = useState('');
+  const [actTabQR, setActTabQR] = useState('');
+  const [actTabCargaExcel, setActTabCargaExcel] = useState('active');
 
   const clicTabQR = () => {
     setActTabQR('active');

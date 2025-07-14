@@ -21,12 +21,37 @@ class MovimientosCargados extends Component {
             modalProcesando: false,
             movimientos: [],
             modalQR: false,
-            qrValue: ""
+            qrValue: "",
+            movto: {},
+            modalEliminarMovto: false,
         }
     }
 
     toggleProcesando = () => {
         this.setState({ modalProcesando: !this.state.modalProcesando });
+    }
+
+    toggleModalEliminarMovto = (movto) => {
+        this.setState({
+            movto: movto,
+            modalEliminarMovto: !this.state.modalEliminarMovto
+        });
+    }
+
+    eliminarMovimiento = async () => {
+        this.toggleProcesando();
+        await axios.delete(`${this.hostapi}/api/MovimientosOdT1/${this.state.movto.idMovto}`)
+            .then(res => {
+                this.setState({
+                    modalProcesando: false,
+                    modalEliminarMovto: false
+                });
+                this.getMovimientos(this.props.idOdT);
+            })
+            .catch(err => {
+                this.setState({ modalProcesando: false, modalEliminarMovto: false });
+                alert(`Error:\n${err}`);
+            });
     }
 
     getMovimientos = async (id) => {
@@ -49,18 +74,17 @@ class MovimientosCargados extends Component {
         this.getMovimientos(this.props.idOdT)
     }
 
-    toggleQR = () => this.setState({modalQR: !this.state.modalQR});
+    toggleQR = () => this.setState({ modalQR: !this.state.modalQR });
 
     qrView = (movto) => {
-        console.log(`P${this.props.partNumber},Q${movto.quantity},K${this.props.poNumber},N${movto.serialNumber}`)
-        this.setState({ 
+        this.setState({
             qrValue: `P${this.props.partNumber},Q${movto.quantity},K${this.props.poNumber},N${movto.serialNumber}`
         });
         this.toggleQR();
     }
 
     imprimirEtiqueta = (movto) => {
-        this.toggleProcesando()
+        this.setState({ modalProcesando: true })
         var etiqueta = {
             descripcion: this.props.descripcion,
             partNumber: this.props.partNumber,
@@ -70,28 +94,29 @@ class MovimientosCargados extends Component {
             serialNumber: movto.serialNumber
         }
         var request = new Request(
-          `${this.hostapi}/api/DocumentoPDF/GeneraEtiqueta`,
-          {
-            method: "post",
-            body: JSON.stringify(etiqueta),
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            mode: "cors",
-            cache: "default",
-          }
+            `${this.hostapi}/api/DocumentoPDF/GeneraEtiqueta`,
+            {
+                method: "post",
+                body: JSON.stringify(etiqueta),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                mode: "cors",
+                cache: "default",
+            }
         );
         fetch(request)
-          .then((response) => response.blob())
-          .then((blob) => {
-            const file = window.URL.createObjectURL(blob);
-            this.setState({modalProcesando: false})
-            window.open(file);
-          })
-          .catch((err) => {
-            alert(`Error:\n${err}`);
-          })
-      }
+            .then((response) => response.blob())
+            .then((blob) => {
+                const file = window.URL.createObjectURL(blob);
+                this.setState({ modalProcesando: false })
+                window.open(file);
+            })
+            .catch((err) => {
+                alert(`Error:\n${err}`);
+            })
+    }
+
 
     render() {
         return (
@@ -123,7 +148,7 @@ class MovimientosCargados extends Component {
                                                 <Button color="primary" type="button" onClick={() => this.imprimirEtiqueta(movto)}>
                                                     <span className="fa-solid fa-print"></span>
                                                 </Button>
-                                                <Button color="danger" type="button" /* onClick={() => dlgEliminar(etiqueta)} */>
+                                                <Button color="danger" type="button" onClick={() => this.toggleModalEliminarMovto(movto)}>
                                                     <span className="fa-solid fa-xmark"></span>
                                                 </Button>
                                             </td>
@@ -157,6 +182,22 @@ class MovimientosCargados extends Component {
                         <Button color="secondary" type="button" onClick={this.toggleQR}>
                             <span className="fa-solid fa-xmark"></span>
                             Cerrar
+                        </Button>
+                    </ModalFooter>
+                </Modal>
+                <Modal
+                    isOpen={this.state.modalEliminarMovto}
+                    toggle={this.toggleModalEliminarMovto}
+                >
+                    <ModalBody>
+                        ¿Esta seguro que desea eliminar el movimiento seleccionado?
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="secondary" type="button" onClick={this.toggleModalEliminarMovto}>
+                            No
+                        </Button>
+                        <Button color="primary" type="button" onClick={this.eliminarMovimiento}>
+                            Si
                         </Button>
                     </ModalFooter>
                 </Modal>

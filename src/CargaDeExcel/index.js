@@ -12,6 +12,8 @@ import MovimientosCargados from './MovimientosCargados';
 function CargaDeExcel() {
 
   var hostapi = "http://localhost:5265";
+  //var hostapi = "http://192.168.1.100:3000/polyempaques";
+
   const [odts, setOdts] = useState([]);
   const [bitacora, setBitacora] = useState([]);
   const [modalMovimientosCargados, setModalMovimientosCargados] = useState(false);

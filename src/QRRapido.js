@@ -101,7 +101,7 @@ function QRRapido() {
         toggleProcesando()
         axios.post(`${hostapi}/api/QR`, current)
           .then(res => {
-            if (res.data.status === "error") {
+            if (res.data.status !== "success") {
               alert(res.data.mensaje)
             }
             setModalProcesando(false)
@@ -117,7 +117,7 @@ function QRRapido() {
         toggleProcesando()
         axios.put(`${hostapi}/api/QR`, current)
           .then(res => {
-            if (res.data.status === "error") {
+            if (res.data.status !== "success") {
               alert(res.data.mensaje)
             }
             setModalProcesando(false)
@@ -146,7 +146,7 @@ function QRRapido() {
   const eliminarRegistro = () => {
     axios.delete(`${hostapi}/api/QR/${current.idQR}`)
       .then(res => {
-        if (res.data.status === "error") {
+        if (res.data.status !== "success") {
           alert(res.data.mensaje)
         }
         getQRs();
@@ -193,7 +193,7 @@ function QRRapido() {
       <>
         <Row>
           <Col xs="10">
-            {/* <p style={{ textAlign: "left", fontSize: "2em" }}>Lista de etiquetas</p> */}
+            <p style={{ textAlign: "left", fontSize: "2em" }}>Lista de etiquetas</p>
           </Col>
           <Col xs="2">
             <Button

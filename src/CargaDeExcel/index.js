@@ -1,5 +1,6 @@
 import '../App.css';
 import loader from '../assets/loader.gif';
+import PlantillaDeCargaDeDatos from '../assets/PlantillaDeCargaDeDatos.xlsx';
 import {
   Form, FormGroup, Input, Row, Col, Modal, ModalFooter, Label,
   Container, Alert, Button, Table, ModalBody, ModalHeader, FormFeedback
@@ -11,8 +12,8 @@ import MovimientosCargados from './MovimientosCargados';
 
 function CargaDeExcel() {
 
-  var hostapi = "http://localhost:5265";
-  //var hostapi = "http://192.168.1.100:3000/polyempaques";
+  //var hostapi = "http://localhost:5265";
+  var hostapi = "http://192.168.1.100:3000/polyempaques";
 
   const [odts, setOdts] = useState([]);
   const [bitacora, setBitacora] = useState([]);
@@ -115,36 +116,53 @@ function CargaDeExcel() {
 
   const imprimirEtiqueta = (odt) => {
     toggleProcesando()
-    var request = new Request(
-      `${hostapi}/api/DocumentoPDF/EtiquetasDeLaOdt`,
-      {
-        method: "post",
-        body: JSON.stringify(odt.idOdT),
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        mode: "cors",
-        cache: "default",
-      }
-    );
-    fetch(request)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const file = window.URL.createObjectURL(blob);
-        setModalProcesando(false)
-        window.open(file, '_blank');
+    //axios.get(`${hostapi}/api/DocumentoPDF/ListaPdfOdT/${odt.idOdt}`)
+    var data = {
+      idOdT: odt.idOdT
+    }
+    axios.post(`${hostapi}/api/DocumentoPDF/ListaPdfOdT`, data)
+      .then(res => {
+        if (res.data.status === "ok") {
+          res.data.listaArchivos.forEach(file => {
+            var request = new Request(
+              `${hostapi}/api/DocumentoPDF/EtiquetasDeLaOdt`,
+              {
+                method: "post",
+                body: JSON.stringify(file),
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                mode: "cors",
+                cache: "default",
+              }
+            );
+            fetch(request)
+              .then((response) => response.blob())
+              .then((blob) => {
+                const file = window.URL.createObjectURL(blob);
+                setModalProcesando(false)
+                window.open(file, '_blank');
+              })
+              .catch((err) => {
+                alert(`Error:\n${err}`);
+              })
+          });
+        }
       })
-      .catch((err) => {
-        alert(`Error:\n${err}`);
-      })
+      .catch(err => {
+        setModalProcesando(false);
+        alert(`Error al procesar las etiquetas:\n${err}`);
+      });
   }
 
   return (
     <Container>
       <Form onSubmit={(e) => handleSubmit(e)}>
         <Row>
-          <Col xs="5"></Col>
-          <Col xs="5">
+          <Col xs="7" style={{textAlign: "left"}}>
+            <a href={PlantillaDeCargaDeDatos}>Descarga la plantilla de Excel para carga de datos.</a>
+          </Col>
+          <Col>
             <input
               type="file"
               name='archivoDeExcel'

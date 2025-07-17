@@ -22,8 +22,8 @@ function QRRapido() {
     timestamp: null,
     idUsuario: null
   }
-  var hostapi = "http://localhost:5265";
-  //var hostapi = "http://192.168.1.100:3000/polyempaques";
+  //var hostapi = "http://localhost:5265";
+  var hostapi = "http://192.168.1.100:3000/polyempaques";
 
   const colorBlack = new BakeryColor(0, 0, 0);
   const colorWhite = new BakeryColor(255, 255, 255);

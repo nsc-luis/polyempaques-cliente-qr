@@ -12,8 +12,8 @@ import { BakeryDatamatrix } from '@barcode-bakery/barcode-react/datamatrix';
 
 class MovimientosCargados extends Component {
 
-    hostapi = "http://localhost:5265";
-    //hostapi = "http://192.168.1.100:3000/polyempaques";
+    //hostapi = "http://localhost:5265";
+    hostapi = "http://192.168.1.100:3000/polyempaques";
 
     colorBlack = new BakeryColor(0, 0, 0);
     colorWhite = new BakeryColor(255, 255, 255);
@@ -60,7 +60,7 @@ class MovimientosCargados extends Component {
         this.toggleProcesando()
         await axios.get(`${this.hostapi}/api/MovimientosOdT1/${id}`)
             .then(res => {
-                console.log(res.data)
+                //console.log(res.data)
                 this.setState({
                     movimientos: res.data.movimientos,
                     modalProcesando: false

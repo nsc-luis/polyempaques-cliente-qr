@@ -10,8 +10,8 @@ import CargaDeExcel from './CargaDeExcel';
 
 function App() {
 
-  const [actTabQR, setActTabQR] = useState('active');
-  const [actTabCargaExcel, setActTabCargaExcel] = useState('');
+  const [actTabQR, setActTabQR] = useState('');
+  const [actTabCargaExcel, setActTabCargaExcel] = useState('active');
 
   const clicTabQR = () => {
     setActTabQR('active');
@@ -30,7 +30,7 @@ function App() {
             <p style={{ textAlign: "left" }}><img src={logo} width={'20%'} height={'20%'} /></p>
           </Col>
         </Row>
-        {/* <Row>
+        <Row>
           <Col xs="12">
             <Nav tabs>
               <NavItem>
@@ -51,7 +51,7 @@ function App() {
               </NavItem>
             </Nav>
           </Col>
-        </Row> */}
+        </Row>
         {actTabQR === 'active' &&
           <QRRapido />
         }

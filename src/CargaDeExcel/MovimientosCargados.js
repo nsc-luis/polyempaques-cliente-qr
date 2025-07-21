@@ -44,11 +44,20 @@ class MovimientosCargados extends Component {
         this.toggleProcesando();
         await axios.delete(`${this.hostapi}/api/MovimientosOdT1/${this.state.movto.idMovto}`)
             .then(res => {
-                this.setState({
-                    modalProcesando: false,
-                    modalEliminarMovto: false
-                });
-                this.getMovimientos(this.props.idOdT);
+                if (res.data.status === "ok") {
+                    this.setState({
+                        modalProcesando: false,
+                        modalEliminarMovto: false
+                    });
+                    this.getMovimientos(this.props.idOdT);
+                }
+                else {
+                    this.setState({
+                        modalProcesando: false,
+                        modalEliminarMovto: false
+                    });
+                    alert(`Error:\n${res.data.message}`);
+                }
             })
             .catch(err => {
                 this.setState({ modalProcesando: false, modalEliminarMovto: false });
@@ -60,11 +69,16 @@ class MovimientosCargados extends Component {
         this.toggleProcesando()
         await axios.get(`${this.hostapi}/api/MovimientosOdT1/${id}`)
             .then(res => {
-                //console.log(res.data)
-                this.setState({
-                    movimientos: res.data.movimientos,
-                    modalProcesando: false
-                })
+                if (res.data.status === "ok") {
+                    this.setState({
+                        movimientos: res.data.movimientos,
+                        modalProcesando: false
+                    })
+                }
+                else {
+                    this.setState({ modalProcesando: false })
+                    alert(`Error:\n${res.data.message}`);
+                }
             })
             .catch(err => {
                 this.setState({ modalProcesando: false })
@@ -86,7 +100,7 @@ class MovimientosCargados extends Component {
     }
 
     imprimirEtiqueta = (movto) => {
-        this.setState({ modalProcesando: true })
+        this.toggleProcesando();
         var etiqueta = {
             descripcion: this.props.descripcion,
             partNumber: this.props.partNumber,
@@ -111,7 +125,7 @@ class MovimientosCargados extends Component {
             .then((response) => response.blob())
             .then((blob) => {
                 const file = window.URL.createObjectURL(blob);
-                this.setState({ modalProcesando: false })
+                this.toggleProcesando();
                 window.open(file);
             })
             .catch((err) => {

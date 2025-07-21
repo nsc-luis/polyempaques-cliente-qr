@@ -40,8 +40,14 @@ function CargaDeExcel() {
     toggleProcesando()
     axios.get(`${hostapi}/api/OdT1`)
       .then(res => {
-        setOdts(res.data.ordenesDetrabajo)
-        setModalProcesando(false)
+        if (res.data.status === "ok") {
+          setOdts(res.data.ordenesDetrabajo)
+          setModalProcesando(false)
+        }
+        else {
+          setModalProcesando(false)
+          alert(`Error:\n${res.data.message}`)
+        }
       })
       .catch(err => {
         setModalProcesando(false)
@@ -55,11 +61,17 @@ function CargaDeExcel() {
 
   const verBitacoraDeCarga = (id) => {
     toggleProcesando()
-    axios.get(`${hostapi}/api/BitacoraDeCarga1?idOdT1=${id}`)
+    axios.get(`${hostapi}/api/BitacoraDeCarga1/${id}`)
       .then(res => {
-        setBitacora(res.data.bitacora)
-        setModalProcesando(false)
-        setModalBitacora(!modalBitacora)
+        if (res.data.status === "ok") {
+          setBitacora(res.data.bitacora)
+          setModalProcesando(false)
+          setModalBitacora(!modalBitacora)
+        }
+        else {
+          setModalProcesando(false)
+          alert(`Error:\n${res.data.message}`)
+        }
       })
       .catch(err => {
         setModalProcesando(false)
@@ -72,29 +84,46 @@ function CargaDeExcel() {
     toggleMovimientosCargados();
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     toggleProcesando();
     const formData = new FormData();
     formData.append('archivoDeExcel', e.target.archivoDeExcel.files[0]);
     try {
-      const response = await fetch(`${hostapi}/api/CargaExcel`, { // Replace with your actual API endpoint
+      fetch(`${hostapi}/api/CargaExcel`, { // Replace with your actual API endpoint
         method: 'post',
         body: formData,
-      });
+      })
+        .then(response => {
+          if (response.ok) {
+            setArchivoDeExcel(null); // Clear selected file after upload
+            setModalProcesando(false);
+            response.json().then(data => {
+              var mensaje = "";
+              if (data.error === true) {
+                data.mensaje.forEach(msj => {
+                  mensaje += `${msj}\n\n`;
+                });
+                alert(`Error!\n${mensaje}`);
+              }
+            })
+            getOdts(); // Refresh the list of odts after upload
+          }
+          else {
+            setModalProcesando(false);
+            response.text().then(text => {
+              alert(`Error during upload:\n${text}`);
+            });
+            response.json().then(data => {
+              alert(`Error during upload:\n${data.message}`);
 
-      if (response.ok) {
-        setArchivoDeExcel(null); // Clear selected file after upload
-        setModalProcesando(false);
-        getOdts(); // Refresh the list of odts after upload
-      } else {
-        setModalProcesando(false);
-        alert('File upload failed.');
-      }
+            })
+            alert(`Error during upload:\n${response.statusText}`);
+          }
+        })
     } catch (error) {
       setModalProcesando(false);
-      console.error('Error uploading file:', error);
-      alert('An error occurred during upload.');
+      alert(`An error occurred during upload.\n${error}`);
     }
   }
 
@@ -104,8 +133,13 @@ function CargaDeExcel() {
       toggleProcesando();
       axios.delete(`${hostapi}/api/OdT1/${odt.idOdT}`)
         .then(res => {
-          //alert(`ODT ${odt.idOdT} eliminada correctamente.`);
-          getOdts();
+          if (res.data.status === "ok") {
+            //alert(`ODT ${odt.idOdT} eliminada correctamente.`);
+            getOdts();
+          }
+          else {
+            alert(`Error al eliminar la ODT:\n${res.data.message}`);
+          }
         })
         .catch(err => {
           setModalProcesando(false);
@@ -159,7 +193,7 @@ function CargaDeExcel() {
     <Container>
       <Form onSubmit={(e) => handleSubmit(e)}>
         <Row>
-          <Col xs="7" style={{textAlign: "left"}}>
+          <Col xs="5" style={{ textAlign: "left" }}>
             <a href={PlantillaDeCargaDeDatos}>Descarga la plantilla de Excel para carga de datos.</a>
           </Col>
           <Col>
